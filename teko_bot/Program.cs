@@ -1,81 +1,29 @@
-﻿/*
-using Telegram.Bot;
-
-namespace teko_bot
-{
-    internal class Program
-    {
-        static async Task Main(string[] args)
-        {
-            
-            var botClient = new TelegramBotClient("5446428708:AAEOFR_1BHWh0G6W8yCNzDgJkU7tSfBgS3g");
-
-            var me = await botClient.GetMeAsync();
-            Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
-        }
-    }
-}
-*/
-
-using Telegram.Bot;
-using Telegram.Bot.Exceptions;
+﻿using Telegram.Bot;
+using teko_bot;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-var botClient = new TelegramBotClient("5446428708:AAEOFR_1BHWh0G6W8yCNzDgJkU7tSfBgS3g");
+var bot = new TelegramBotClient(BotConfiguration.BotToken);
+
+var me = await bot.GetMeAsync();
+Console.Title = me.Username ?? "My awesome Bot";
 
 using var cts = new CancellationTokenSource();
 
 // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-var receiverOptions = new ReceiverOptions
+var receiverOptions = new ReceiverOptions()
 {
-    AllowedUpdates = Array.Empty<UpdateType>() // receive all update types
+    AllowedUpdates = Array.Empty<UpdateType>(),
+    ThrowPendingUpdates = true,
 };
-botClient.StartReceiving(
-    updateHandler: HandleUpdateAsync,
-    pollingErrorHandler: HandlePollingErrorAsync,
-    receiverOptions: receiverOptions,
-    cancellationToken: cts.Token
-);
 
-var me = await botClient.GetMeAsync();
+bot.StartReceiving(updateHandler: UpdateHandlers.HandleUpdateAsync,
+    pollingErrorHandler: UpdateHandlers.PollingErrorHandler,
+    receiverOptions: receiverOptions,
+    cancellationToken: cts.Token);
 
 Console.WriteLine($"Start listening for @{me.Username}");
 Console.ReadLine();
 
 // Send cancellation request to stop bot
 cts.Cancel();
-
-async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-{
-    // Only process Message updates: https://core.telegram.org/bots/api#message
-    if (update.Message is not { } message)
-        return;
-    // Only process text messages
-    if (message.Text is not { } messageText)
-        return;
-
-    var chatId = message.Chat.Id;
-
-    Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
-
-    // Echo received message text
-    Message sentMessage = await botClient.SendTextMessageAsync(
-        chatId: chatId,
-        text: "You said:\n" + messageText,
-        cancellationToken: cancellationToken);
-}
-
-Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-{
-    var ErrorMessage = exception switch
-    {
-        ApiRequestException apiRequestException
-            => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-        _ => exception.ToString()
-    };
-
-    Console.WriteLine(ErrorMessage);
-    return Task.CompletedTask;
-}
