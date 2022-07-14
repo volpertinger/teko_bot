@@ -80,6 +80,7 @@ public static class UpdateHandlers
             replyMarkup: GetKeyboard());
     }
 
+    // обработка добавления компании
     private static async Task<Message> AddCompany(ITelegramBotClient botClient, Message message)
     {
         if (BotConfiguration.State != States.Default)
@@ -93,6 +94,7 @@ public static class UpdateHandlers
             replyMarkup: new ReplyKeyboardRemove());
     }
 
+    // обработка входа по id компании
     private static async Task<Message> LogInCompany(ITelegramBotClient botClient, Message message)
     {
         if (BotConfiguration.State != States.Default)
@@ -144,6 +146,7 @@ public static class UpdateHandlers
             replyMarkup: GetKeyboard());
     }
 
+    // Обработка неудач при входе в компанию
     private static async Task<Message> LogInCompanyUnSuccessProcessing(ITelegramBotClient botClient, Message message)
     {
         BotConfiguration.State = States.Default;
@@ -152,6 +155,7 @@ public static class UpdateHandlers
             replyMarkup: GetKeyboard());
     }
 
+    // Обработка процесса входа в компанию
     private static async Task<Message> LogInCompanyProcessing(ITelegramBotClient botClient, Message message)
     {
         if (message.Text is null)
@@ -167,6 +171,7 @@ public static class UpdateHandlers
             replyMarkup: GetKeyboard());
     }
 
+    // Обработка сообщений, не являющимися командами
     private static async Task<Message> DefaultCase(ITelegramBotClient botClient, Message message)
     {
         switch (BotConfiguration.State)
@@ -184,6 +189,7 @@ public static class UpdateHandlers
         }
     }
 
+    // Обработка возврата в начало
     private static async Task<Message> Clear(ITelegramBotClient botClient, Message message)
     {
         BotConfiguration.State = States.Default;
