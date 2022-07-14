@@ -1,10 +1,10 @@
 using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+
+// ReSharper disable StringLiteralTypo
 
 namespace teko_bot;
 
@@ -197,19 +197,20 @@ public static class UpdateHandlers
             isPersonal: true,
             cacheTime: 0);
     }
-    
+
     // обработка результата встроенного запроса
     private static Task BotOnChosenInlineResultReceived(ITelegramBotClient botClient,
         ChosenInlineResult chosenInlineResult)
     {
-        Console.WriteLine($"Результат встроенного запроса: {chosenInlineResult.ResultId}");
+        // ReSharper disable once StringLiteralTypo
+        Console.WriteLine($"Результат встроенного запроса: {chosenInlineResult.ResultId}\n id бота: {botClient.BotId}");
         return Task.CompletedTask;
     }
 
     // Обработка неизвестных команд
     private static Task UnknownUpdateHandlerAsync(ITelegramBotClient botClient, Update update)
     {
-        Console.WriteLine($"Неизвестная команда: {update.Type}");
+        Console.WriteLine($"Неизвестная команда: {update.Type}\n id бота: {botClient.BotId}");
         return Task.CompletedTask;
     }
 }
