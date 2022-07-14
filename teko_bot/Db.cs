@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Globalization;
 
 namespace teko_bot;
@@ -11,10 +10,18 @@ public class Company
 
     public List<Bill> Bills { get; set; } = new();
 
-    public static async void addToDb(ApplicationContext db, string name)
+    public static async void addToDb(string name)
     {
+        var db = BotConfiguration.Db;
         db.Add(new Company { Name = name });
         await db.SaveChangesAsync();
+    }
+
+    public static async Task<int> getId(int id)
+    {
+        var db = BotConfiguration.Db;
+        var company = await db.Companies.FindAsync(id);
+        return company is null ? 0 : id;
     }
 }
 
@@ -29,8 +36,9 @@ public class Bill
     public int CompanyId { get; set; }
     public Company? Company { get; set; }
 
-    public static async void addToDb(ApplicationContext db, string? description, string email, int companyId)
+    public static async void addToDb(string? description, string email, int companyId)
     {
+        var db = BotConfiguration.Db;
         // чтобы не было ошибки при добавлении счета к несуществующей компании
         var company = await db.Companies.FindAsync(companyId);
         if (company is null)

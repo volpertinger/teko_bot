@@ -2,6 +2,7 @@
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using teko_bot;
+//using ApplicationContext db = new ApplicationContext();
 
 var bot = new TelegramBotClient(BotConfiguration.BotToken);
 var me = await bot.GetMeAsync();
