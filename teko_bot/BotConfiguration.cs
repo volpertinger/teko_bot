@@ -56,7 +56,8 @@ public static class Answers
     public const string CompanyLogInSuccess = "Вы успешно вошли в компанию\n";
     public const string CompanyLogInUnSuccess = "Что - то пошло не так, вход не выполнен\n";
     public const string WrongState = "Не с правильного места вызвал ты комманду, хитрец\n";
-    public const string ClearText = "Начнём сначала";
+    public const string ClearText = "Начнём сначала\n";
+    public const string WrongCommand = "Я тебя не понимаю(\n";
 }
 
 // Различные клавиатуры для разных остояний
