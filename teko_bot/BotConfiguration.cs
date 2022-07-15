@@ -66,6 +66,8 @@ public static class Answers
     public const string ClearText = "Начнём сначала\n";
     public const string WrongCommand = "Я тебя не понимаю(\n";
     public const string Back = "Вернемся назад\n";
+    public const string OutOfPagesRange = "В той стороне нет больше данных\n";
+    public const string EmptyList = "Нет здесь ничего, нужно сначала хоть что - то добавить\n";
 }
 
 // Различные клавиатуры для разных остояний

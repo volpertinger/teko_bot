@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -69,6 +70,8 @@ public static class UpdateHandlers
             Commands.LogInCompany => LogInCompany(botClient, message),
             Commands.GetCompanies => CheckCompanies(botClient, message),
             Commands.Back => Back(botClient, message),
+            Commands.Left => Left(botClient, message),
+            Commands.Right => Right(botClient, message),
             _ => DefaultCase(botClient, message)
         };
         var sentMessage = await action;
@@ -109,15 +112,14 @@ public static class UpdateHandlers
 
         User.SetState(message.Chat.Username, States.CheckCompanies);
         var companies = await Company.GetCompanies(page);
-        //var messageText = companies[0].ToString();
-        var messageText = GetTextFromList(companies);
+        var messageText = GetPageFromList(companies, await Company.GetAmount(), page);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: messageText,
             replyMarkup: await GetKeyboard(message));
     }
 
     // обработка возврата назад
-    private static async Task<Message> Back(ITelegramBotClient botClient, Message message, int page = 1)
+    private static async Task<Message> Back(ITelegramBotClient botClient, Message message)
     {
         var state = await User.GetState(message.Chat.Username);
         if (state != States.CheckCompanies)
@@ -129,6 +131,48 @@ public static class UpdateHandlers
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.Back,
             replyMarkup: await GetKeyboard(message));
+    }
+
+    // обработка перехода на страницу влево при просмотре данных с БД 
+    private static async Task<Message> Left(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (state != States.CheckCompanies)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        var page = await User.GetPage(message.Chat.Username);
+        if (page < 2)
+        {
+            return await OutOfPageProcessing(botClient, message);
+        }
+
+        page -= 1;
+
+        User.SetPage(message.Chat.Username, page);
+        return await CheckCompanies(botClient, message, page);
+    }
+
+    // обработка перехода на страницу вправо при просмотре данных с БД 
+    private static async Task<Message> Right(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (state != States.CheckCompanies)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        var page = await User.GetPage(message.Chat.Username);
+        var companiesAmount = await Company.GetAmount();
+        if (companiesAmount <= page * BotConfiguration.PageSize)
+        {
+            return await OutOfPageProcessing(botClient, message);
+        }
+
+        page += 1;
+        User.SetPage(message.Chat.Username, page);
+        return await CheckCompanies(botClient, message, page);
     }
 
     // обработка входа по id компании
@@ -168,6 +212,14 @@ public static class UpdateHandlers
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.WrongState,
+            replyMarkup: await GetKeyboard(message));
+    }
+
+    // Отправка сообщения при попытке во время пагинации уйти туда, где данных нет
+    private static async Task<Message> OutOfPageProcessing(ITelegramBotClient botClient, Message message)
+    {
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.OutOfPagesRange,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -304,9 +356,10 @@ public static class UpdateHandlers
     }
 
     // Получить из некоторого List адекватное сообщение со списком
-
     private static string GetTextFromList<T>(List<T> list, string sep = "\n")
     {
+        if (list.Count == 0)
+            return Answers.EmptyList;
         var result = "";
         for (int i = 0; i < list.Count - 1; ++i)
         {
@@ -314,6 +367,22 @@ public static class UpdateHandlers
         }
 
         result += list[list.Count - 1];
+        return result;
+    }
+
+    // Добавить в конец строку с текущнй страницей и сколько страниц всего
+    private static string GetPageInfo(int totalAmount, int page)
+    {
+        return "страница " + page.ToString() + " из " +
+               Math.Ceiling((double)totalAmount / BotConfiguration.PageSize).ToString();
+    }
+
+    // генерация полноценной страницы для просмотра данных с БД 
+    private static string GetPageFromList<T>(List<T> list, int totalAmount, int page, string sep = "\n")
+    {
+        var result = GetTextFromList(list, sep);
+        result += "\n";
+        result += GetPageInfo(totalAmount, page);
         return result;
     }
 }

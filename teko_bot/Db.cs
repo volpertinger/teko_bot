@@ -21,10 +21,19 @@ public class Company
         await db.SaveChangesAsync();
     }
 
+    public static async Task<int> GetAmount()
+    {
+        var db = BotConfiguration.Db;
+        return await db.Companies.CountAsync();
+    }
+
     public static async Task<List<Company>> GetCompanies(int page)
     {
         if (page < 1)
+        {
             page = 1;
+        }
+
         var db = BotConfiguration.Db;
         var result = await db.Companies.Skip((page - 1) * BotConfiguration.PageSize).Take(BotConfiguration.PageSize)
             .ToListAsync();
@@ -82,8 +91,15 @@ public class User
 {
     // Username будет ключом
     [Key] public string Username { get; set; }
+
+    // сотсояние бота для конкретного пользователя
     public States State { get; set; }
+
+    // клмпания, в которую выполнен пользователеем вход (0 - никуда вход не выполнен)
     public int CurrentCompanyId { get; set; }
+
+    // текущая страница при просмотре ланных с БД (0 - не просматривает данные)
+    public int CurrentPage { get; set; }
 
     // проверяет, что пользователь с Username существует, иначе - добавляет его в базу
     public static async void UserCheck(string username)
@@ -113,6 +129,27 @@ public class User
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
         user.State = state;
+        await db.SaveChangesAsync();
+    }
+
+    public static async Task<int> GetPage(string? username)
+    {
+        if (username is null)
+            return 0;
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = await db.Users.FindAsync(username);
+        return user.CurrentPage;
+    }
+
+    public static async void SetPage(string? username, int page)
+    {
+        if (username is null)
+            return;
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = await db.Users.FindAsync(username);
+        user.CurrentPage = page;
         await db.SaveChangesAsync();
     }
 
