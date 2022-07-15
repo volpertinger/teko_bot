@@ -64,6 +64,7 @@ public class User
     // Username будет ключом
     [Key] public string Username { get; set; }
     public States State { get; set; }
+    public int CurrentCompanyId { get; set; }
 
     // проверяет, что пользователь с Username существует, иначе - добавляет его в базу
     public static async void UserCheck(string username)
@@ -71,7 +72,7 @@ public class User
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
         if (user is not null) return;
-        db.Users.Add(new User { Username = username, State = States.Default });
+        db.Users.Add(new User { Username = username, State = States.Default, CurrentCompanyId = 0 });
         await db.SaveChangesAsync();
     }
 
@@ -81,6 +82,14 @@ public class User
         var db = BotConfiguration.Db;
         var user = db.Users.Find(username);
         return user.State;
+    }
+
+    public static int GetCurrentCompanyId(string username)
+    {
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = db.Users.Find(username);
+        return user.CurrentCompanyId;
     }
 }
 
