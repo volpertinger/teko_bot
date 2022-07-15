@@ -67,6 +67,7 @@ public static class UpdateHandlers
             Commands.AddCompany => AddCompany(botClient, message),
             Commands.LogInCompany => LogInCompany(botClient, message),
             Commands.GetCompanies => CheckCompanies(botClient, message),
+            Commands.CheckBills => CheckBills(botClient, message),
             Commands.Back => Back(botClient, message),
             Commands.Left => Left(botClient, message),
             Commands.Right => Right(botClient, message),
@@ -176,16 +177,46 @@ public static class UpdateHandlers
             replyMarkup: await GetKeyboard(message));
     }
 
-    // обработка возврата назад
-    private static async Task<Message> Back(ITelegramBotClient botClient, Message message)
+    // обработка показа существующих счетов
+    private static async Task<Message> CheckBills(ITelegramBotClient botClient, Message message, int page = 1)
     {
         var state = await User.GetState(message.Chat.Username);
-        if (state != States.CheckCompanies)
+        if (state != States.InCompany && state != States.CheckBills)
         {
             return await WrongStateProcessing(botClient, message);
         }
 
-        User.SetState(message.Chat.Username, States.Default);
+        User.SetState(message.Chat.Username, States.CheckBills);
+        var bills = await Bill.GetBills(page);
+        var messageText = Paginator.GetPageFromList(bills, await Bill.GetAmount(), page);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: messageText,
+            replyMarkup: await GetKeyboard(message));
+    }
+
+    // обработка возврата назад
+    private static async Task<Message> Back(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (!(state == States.CheckCompanies || state == States.CheckBills))
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        switch (state)
+        {
+            case States.CheckCompanies:
+                User.SetState(message.Chat.Username, States.Default);
+                break;
+            case States.CheckBills:
+                User.SetState(message.Chat.Username, States.InCompany);
+                break;
+            default:
+                User.SetState(message.Chat.Username, States.Default);
+                break;
+        }
+
+        User.SetPage(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.Back,
             replyMarkup: await GetKeyboard(message));
@@ -195,7 +226,7 @@ public static class UpdateHandlers
     private static async Task<Message> Left(ITelegramBotClient botClient, Message message)
     {
         var state = await User.GetState(message.Chat.Username);
-        if (state != States.CheckCompanies)
+        if (!(state == States.CheckCompanies || state == States.CheckBills))
         {
             return await WrongStateProcessing(botClient, message);
         }
@@ -207,30 +238,61 @@ public static class UpdateHandlers
         }
 
         page -= 1;
-
         User.SetPage(message.Chat.Username, page);
-        return await CheckCompanies(botClient, message, page);
+
+        switch (state)
+        {
+            case States.CheckCompanies:
+                return await CheckCompanies(botClient, message, page);
+            case States.CheckBills:
+                return await CheckBills(botClient, message, page);
+            default:
+                return await WrongCommandProcessing(botClient, message);
+        }
     }
 
     // обработка перехода на страницу вправо при просмотре данных с БД 
     private static async Task<Message> Right(ITelegramBotClient botClient, Message message)
     {
         var state = await User.GetState(message.Chat.Username);
-        if (state != States.CheckCompanies)
+        if (!(state == States.CheckCompanies || state == States.CheckBills))
         {
             return await WrongStateProcessing(botClient, message);
         }
 
         var page = await User.GetPage(message.Chat.Username);
-        var companiesAmount = await Company.GetAmount();
-        if (companiesAmount <= page * BotConfiguration.PageSize)
+
+        int Amount;
+
+        switch (state)
+        {
+            case States.CheckCompanies:
+                Amount = await Company.GetAmount();
+                break;
+            case States.CheckBills:
+                Amount = await Bill.GetAmount();
+                break;
+            default:
+                return await WrongCommandProcessing(botClient, message);
+        }
+
+        if (Amount <= page * BotConfiguration.PageSize)
         {
             return await OutOfPageProcessing(botClient, message);
         }
 
         page += 1;
         User.SetPage(message.Chat.Username, page);
-        return await CheckCompanies(botClient, message, page);
+
+        switch (state)
+        {
+            case States.CheckCompanies:
+                return await CheckCompanies(botClient, message, page);
+            case States.CheckBills:
+                return await CheckBills(botClient, message, page);
+            default:
+                return await WrongCommandProcessing(botClient, message);
+        }
     }
 
     // обработка входа по id компании

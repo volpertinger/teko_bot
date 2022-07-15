@@ -23,6 +23,7 @@ public static class BotConfiguration
             { States.Default, Keyboards.StartKeyboard },
             { States.InCompany, Keyboards.InCompanyKeyboard },
             { States.CheckCompanies, Keyboards.CheckDbListsKeyboard },
+            { States.CheckBills, Keyboards.CheckDbListsKeyboard },
             { States.BillCreate, Keyboards.BillCreateKeyboard },
             { States.BillSum, Keyboards.BillCreateKeyboard },
             { States.BillEmail, Keyboards.BillCreateKeyboard },
@@ -38,7 +39,7 @@ public static class Commands
     public const string AddCompany = "Добавить компанию";
     public const string LogInCompany = "Войти по id компании";
     public const string CreateBill = "Создать счёт";
-    public const string CheckLastOperations = "Посмотреть последние операции";
+    public const string CheckBills = "Посмотреть последние операции";
     public const string GetSum = "Получить всю сумму за последние дни";
     public const string GetCompanies = "Посмотреть зарегистрированные компании";
     public const string Left = "Влево";
@@ -96,7 +97,7 @@ public static class Keyboards
         new[]
         {
             new KeyboardButton[] { Commands.CreateBill },
-            new KeyboardButton[] { Commands.CheckLastOperations },
+            new KeyboardButton[] { Commands.CheckBills },
             new KeyboardButton[] { Commands.GetSum },
         })
     {
@@ -145,4 +146,5 @@ public enum States
     BillSum,
     BillEmail,
     BillDescription,
+    CheckBills,
 }

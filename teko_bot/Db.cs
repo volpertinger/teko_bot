@@ -134,6 +134,33 @@ public class Bill
         });
         await db.SaveChangesAsync();
     }
+
+    public static async Task<int> GetAmount()
+    {
+        var db = BotConfiguration.Db;
+        return await db.Bills.CountAsync();
+    }
+
+    public static async Task<List<Bill>> GetBills(int page)
+    {
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        var db = BotConfiguration.Db;
+        var result = await db.Bills.Skip((page - 1) * BotConfiguration.PageSize).Take(BotConfiguration.PageSize)
+            .ToListAsync();
+        return result;
+    }
+
+    public override string ToString()
+    {
+        string result = "";
+        result += "*) Id компании: " + CompanyId.ToString() + ", Сумма: " + Sum.ToString() + ", Email: " + Email +
+                  "\nОписание: " + Description + "\nДата: " + Date.ToString();
+        return result;
+    }
 }
 
 // Содержит данные о пользователях, которые используют бота и состояних каждого пользователя
