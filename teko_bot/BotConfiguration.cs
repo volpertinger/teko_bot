@@ -2,10 +2,6 @@
 
 namespace teko_bot;
 
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
 
 public static class BotConfiguration
@@ -27,6 +23,10 @@ public static class BotConfiguration
             { States.Default, Keyboards.StartKeyboard },
             { States.InCompany, Keyboards.InCompanyKeyboard },
             { States.CheckCompanies, Keyboards.CheckDbListsKeyboard },
+            { States.BillCreate, Keyboards.BillCreateKeyboard },
+            { States.BillSum, Keyboards.BillCreateKeyboard },
+            { States.BillEmail, Keyboards.BillCreateKeyboard },
+            { States.BillDescription, Keyboards.BillConfirmKeyboard },
         };
 }
 
@@ -44,6 +44,8 @@ public static class Commands
     public const string Left = "Влево";
     public const string Right = "Вправо";
     public const string Back = "Назад";
+    public const string Confirm = "Подтвердить";
+    public const string Cancel = "Отменить";
 }
 
 // Текстовые ответы, которыми бот делится
@@ -68,6 +70,13 @@ public static class Answers
     public const string Back = "Вернемся назад\n";
     public const string OutOfPagesRange = "В той стороне нет больше данных\n";
     public const string EmptyList = "Нет здесь ничего, нужно сначала хоть что - то добавить\n";
+    public const string BillCreateHelp = "Сейчас будет создан счет компании\nВведите сумму счета\n";
+    public const string BillCreateSumHelp = "Введена сумма\nВведите email\n";
+    public const string BillCreateEmailHelp = "Введен email\nВведите описание\n";
+    public const string BillCreateDiscHelp = "Введено описание\nПодтвердите создание счета\n";
+    public const string BillCreateUnSuccess = "Произошла ошибка при создании счета, попробуйте снова\n";
+    public const string BillCreateSuccess = "Счёт создан\n";
+    public const string BillCancel = "Создание счета отменено\n";
 }
 
 // Различные клавиатуры для разных остояний
@@ -103,6 +112,25 @@ public static class Keyboards
     {
         ResizeKeyboard = true
     };
+
+    public static readonly ReplyKeyboardMarkup BillCreateKeyboard = new(
+        new[]
+        {
+            new KeyboardButton[] { Commands.Cancel }
+        })
+    {
+        ResizeKeyboard = true
+    };
+
+    public static readonly ReplyKeyboardMarkup BillConfirmKeyboard = new(
+        new[]
+        {
+            new KeyboardButton[] { Commands.Confirm },
+            new KeyboardButton[] { Commands.Cancel }
+        })
+    {
+        ResizeKeyboard = true
+    };
 }
 
 // Перечисления состояний, в которых может находиться бот
@@ -113,4 +141,8 @@ public enum States
     AddingCompany,
     LogInCompany,
     CheckCompanies,
+    BillCreate,
+    BillSum,
+    BillEmail,
+    BillDescription,
 }

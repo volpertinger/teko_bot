@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -72,10 +70,37 @@ public static class UpdateHandlers
             Commands.Back => Back(botClient, message),
             Commands.Left => Left(botClient, message),
             Commands.Right => Right(botClient, message),
+            Commands.CreateBill => BillCreate(botClient, message),
+            Commands.Cancel => Cancel(botClient, message),
+            Commands.Confirm => Confirm(botClient, message),
             _ => DefaultCase(botClient, message)
         };
         var sentMessage = await action;
         Console.WriteLine($"Сообщение было отправлено с id: {sentMessage.MessageId}");
+    }
+
+    // Обработка сообщений, не являющимися командами
+    private static async Task<Message> DefaultCase(ITelegramBotClient botClient, Message message)
+    {
+        switch (await User.GetState(message.Chat.Username))
+        {
+            case States.Default:
+                return await WrongCommandProcessing(botClient, message);
+            case States.InCompany:
+                return await WrongCommandProcessing(botClient, message);
+            case States.AddingCompany:
+                return await AddCompanyProcessing(botClient, message);
+            case States.LogInCompany:
+                return await LogInCompanyProcessing(botClient, message);
+            case States.BillCreate:
+                return await BillCreateProcessing(botClient, message);
+            case States.BillSum:
+                return await BillCreateSumProcessing(botClient, message);
+            case States.BillEmail:
+                return await BillCreateEmailProcessing(botClient, message);
+            default:
+                return await WrongCommandProcessing(botClient, message);
+        }
     }
 
     // сообщение - справка об использовании бота 
@@ -99,6 +124,39 @@ public static class UpdateHandlers
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddInstruction,
             replyMarkup: new ReplyKeyboardRemove());
+    }
+
+    // обработка Действия отмены
+    private static async Task<Message> Cancel(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (!(state == States.BillCreate || state == States.BillSum || state == States.BillEmail ||
+              state == States.BillDescription))
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        User.SetState(message.Chat.Username, States.InCompany);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCancel,
+            replyMarkup: await GetKeyboard(message));
+    }
+
+    // Обработка действия подтверждения
+    private static async Task<Message> Confirm(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (state != States.BillDescription)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        var username = message.Chat.Username;
+        User.SetState(username, States.InCompany);
+        User.CreateBill(username);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateSuccess,
+            replyMarkup: await GetKeyboard(message));
     }
 
     // обработка показа существующих компаний
@@ -248,6 +306,15 @@ public static class UpdateHandlers
             replyMarkup: await GetKeyboard(message));
     }
 
+    // Обработка неудач при создании счета
+    private static async Task<Message> BillUnSuccessProcessing(ITelegramBotClient botClient, Message message)
+    {
+        User.SetState(message.Chat.Username, States.InCompany);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateUnSuccess,
+            replyMarkup: await GetKeyboard(message));
+    }
+
     // Обработка процесса входа в компанию
     private static async Task<Message> LogInCompanyProcessing(ITelegramBotClient botClient, Message message)
     {
@@ -266,23 +333,54 @@ public static class UpdateHandlers
             replyMarkup: await GetKeyboard(message));
     }
 
-    // Обработка сообщений, не являющимися командами
-    private static async Task<Message> DefaultCase(ITelegramBotClient botClient, Message message)
+    // Обработка ввода суммы счета в черновик
+    private static async Task<Message> BillCreateProcessing(ITelegramBotClient botClient, Message message)
     {
-        switch (await User.GetState(message.Chat.Username))
-        {
-            case States.Default:
-                return await WrongCommandProcessing(botClient, message);
-            case States.InCompany:
-                return await InCompanyProcessing(botClient, message);
-            case States.AddingCompany:
-                return await AddCompanyProcessing(botClient, message);
-            case States.LogInCompany:
-                return await LogInCompanyProcessing(botClient, message);
-            default:
-                return await WrongCommandProcessing(botClient, message);
-        }
+        if (message.Text is null)
+            return await BillUnSuccessProcessing(botClient, message);
+
+        var draftId = await BillDraft.addToDb(int.Parse(message.Text));
+        var username = message.Chat.Username;
+        User.SetDraft(username, draftId);
+        User.SetState(username, States.BillSum);
+
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateSumHelp,
+            replyMarkup: await GetKeyboard(message));
     }
+
+    // Обработка ввода email в черновик
+    private static async Task<Message> BillCreateSumProcessing(ITelegramBotClient botClient, Message message)
+    {
+        if (message.Text is null)
+            return await BillUnSuccessProcessing(botClient, message);
+
+        var username = message.Chat.Username;
+        var draftId = await User.GetDraft(username);
+        BillDraft.addEmail(draftId, message.Text);
+        User.SetState(username, States.BillEmail);
+
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateEmailHelp,
+            replyMarkup: await GetKeyboard(message));
+    }
+
+    // Обработка ввода описания в черновик
+    private static async Task<Message> BillCreateEmailProcessing(ITelegramBotClient botClient, Message message)
+    {
+        if (message.Text is null)
+            return await BillUnSuccessProcessing(botClient, message);
+
+        var username = message.Chat.Username;
+        var draftId = await User.GetDraft(username);
+        BillDraft.addDesc(draftId, message.Text);
+        User.SetState(username, States.BillDescription);
+
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateDiscHelp,
+            replyMarkup: await GetKeyboard(message));
+    }
+
 
     // Обработка возврата в начало
     private static async Task<Message> Clear(ITelegramBotClient botClient, Message message)
@@ -353,5 +451,19 @@ public static class UpdateHandlers
     {
         var state = await User.GetState(message.Chat.Username);
         return BotConfiguration.StatesKeyboards[state];
+    }
+
+    // Создание счета
+    private static async Task<Message> BillCreate(ITelegramBotClient botClient, Message message)
+    {
+        if (await User.GetState(message.Chat.Username) != States.InCompany)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        User.SetState(message.Chat.Username, States.BillCreate);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.BillCreateHelp,
+            replyMarkup: await GetKeyboard(message));
     }
 }
