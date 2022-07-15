@@ -40,7 +40,7 @@ public static class Commands
     public const string LogInCompany = "Войти по id компании";
     public const string CreateBill = "Создать счёт";
     public const string CheckBills = "Посмотреть последние операции";
-    public const string GetSum = "Получить всю сумму за последние дни";
+    public const string GetSum = "Получить всю сумму платежей";
     public const string GetCompanies = "Посмотреть зарегистрированные компании";
     public const string Left = "Влево";
     public const string Right = "Вправо";
@@ -57,7 +57,7 @@ public static class Answers
                                 "Если она существует, то можно выполнить следующие действия:\n" +
                                 "1) создать счёт (сумма, описание счёта, email для отправки счёта)\n" +
                                 "2) посмотреть последние 10 операций\n" +
-                                "3) получить информацию по общей сумме платежей за день\n";
+                                "3) получить информацию по общей сумме платежей\n";
 
     public const string CompanyAddSuccess = "Компания успешно добавлена\n";
     public const string CompanyAddUnSuccess = "Что - то пошло не так, компания не добавлена\n";
@@ -78,6 +78,7 @@ public static class Answers
     public const string BillCreateUnSuccess = "Произошла ошибка при создании счета, попробуйте снова\n";
     public const string BillCreateSuccess = "Счёт создан\n";
     public const string BillCancel = "Создание счета отменено\n";
+    public const string GetSum = "Сумма платежей по данной комании: \n";
 }
 
 // Различные клавиатуры для разных остояний

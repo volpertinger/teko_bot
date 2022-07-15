@@ -47,6 +47,24 @@ public class Company
         return company is null ? 0 : id;
     }
 
+    public static async Task<int> getSum(int id)
+    {
+        // просто обработка случая, если сейчас пользователь не в компании (но тогда он не сможет вызвать команды,
+        //приводящие к вызову жтой функции, поэтому проверка это ради проверки
+        if (id < 1)
+            return 0;
+        var db = BotConfiguration.Db;
+        var company = db.Companies.Find(id);
+        var bills = company.Bills;
+        int result = 0;
+        foreach (var bill in bills)
+        {
+            result += bill.Sum;
+        }
+
+        return result;
+    }
+
     public override string ToString()
     {
         string result = "";

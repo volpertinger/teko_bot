@@ -74,6 +74,7 @@ public static class UpdateHandlers
             Commands.CreateBill => BillCreate(botClient, message),
             Commands.Cancel => Cancel(botClient, message),
             Commands.Confirm => Confirm(botClient, message),
+            Commands.GetSum => GetSum(botClient, message),
             _ => DefaultCase(botClient, message)
         };
         var sentMessage = await action;
@@ -125,6 +126,21 @@ public static class UpdateHandlers
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddInstruction,
             replyMarkup: new ReplyKeyboardRemove());
+    }
+
+    // обработка получения всей суммы платежей 
+    private static async Task<Message> GetSum(ITelegramBotClient botClient, Message message)
+    {
+        if (await User.GetState(message.Chat.Username) != States.InCompany)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        var messageText = Answers.GetSum;
+        messageText += await Company.getSum(await User.GetCurrentCompanyId(message.Chat.Username));
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: messageText,
+            replyMarkup: await GetKeyboard(message));
     }
 
     // обработка Действия отмены
