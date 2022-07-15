@@ -119,6 +119,7 @@ public static class UpdateHandlers
     // обработка комманд, когда выполнен вход в компанию
     private static async Task<Message> InCompanyProcessing(ITelegramBotClient botClient, Message message)
     {
+        //Console.WriteLine(message.Chat.Username);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: "Ты в компании",
             replyMarkup: GetKeyboard());
@@ -140,7 +141,7 @@ public static class UpdateHandlers
             return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
                 text: Answers.CompanyAddUnSuccess,
                 replyMarkup: GetKeyboard());
-        Company.addToDb(message.Text);
+        Company.AddToDb(message.Text);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddSuccess,
             replyMarkup: GetKeyboard());

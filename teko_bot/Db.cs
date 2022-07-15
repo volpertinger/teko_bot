@@ -1,16 +1,18 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 namespace teko_bot;
 
+// Содержит id и имя компании, чтобы было, чему выставлять счета
 public class Company
 {
     public int CompanyId { get; set; }
-    public string Name;
+    public string Name { get; set; }
 
     public List<Bill> Bills { get; set; } = new();
 
-    public static async void addToDb(string name)
+    public static async void AddToDb(string name)
     {
         var db = BotConfiguration.Db;
         db.Add(new Company { Name = name });
@@ -25,6 +27,7 @@ public class Company
     }
 }
 
+// Содержит все данные о счетах: связь Company - Bill: 1 - *
 public class Bill
 {
     public int BillId { get; set; }
@@ -55,11 +58,38 @@ public class Bill
     }
 }
 
+// Содержит данные о пользователях, которые используют бота и состояних каждого пользователя
+public class User
+{
+    // Username будет ключом
+    [Key] public string Username { get; set; }
+    public States State { get; set; }
+
+    // проверяет, что пользователь с Username существует, иначе - добавляет его в базу
+    public static async void UserCheck(string username)
+    {
+        var db = BotConfiguration.Db;
+        var user = await db.Users.FindAsync(username);
+        if (user is not null) return;
+        db.Users.Add(new User { Username = username, State = States.Default });
+        await db.SaveChangesAsync();
+    }
+
+    public static States GetState(string username)
+    {
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = db.Users.Find(username);
+        return user.State;
+    }
+}
+
 public sealed class ApplicationContext : DbContext
 {
     readonly StreamWriter logStream = new StreamWriter(BotConfiguration.DbLogPath, true);
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<Bill> Bills => Set<Bill>();
+    public DbSet<User> Users => Set<User>();
 
     public ApplicationContext()
     {
