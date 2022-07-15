@@ -26,6 +26,7 @@ public static class BotConfiguration
         {
             { States.Default, Keyboards.StartKeyboard },
             { States.InCompany, Keyboards.InCompanyKeyboard },
+            { States.CheckCompanies, Keyboards.CheckDbListsKeyboard },
         };
 }
 
@@ -40,6 +41,9 @@ public static class Commands
     public const string CheckLastOperations = "Посмотреть последние операции";
     public const string GetSum = "Получить всю сумму за последние дни";
     public const string GetCompanies = "Посмотреть зарегистрированные компании";
+    public const string Left = "Влево";
+    public const string Right = "Вправо";
+    public const string Back = "Назад";
 }
 
 // Текстовые ответы, которыми бот делится
@@ -61,6 +65,7 @@ public static class Answers
     public const string WrongState = "Не с правильного места вызвал ты комманду, хитрец\n";
     public const string ClearText = "Начнём сначала\n";
     public const string WrongCommand = "Я тебя не понимаю(\n";
+    public const string Back = "Вернемся назад\n";
 }
 
 // Различные клавиатуры для разных остояний
@@ -82,6 +87,16 @@ public static class Keyboards
             new KeyboardButton[] { Commands.CreateBill },
             new KeyboardButton[] { Commands.CheckLastOperations },
             new KeyboardButton[] { Commands.GetSum },
+        })
+    {
+        ResizeKeyboard = true
+    };
+
+    public static readonly ReplyKeyboardMarkup CheckDbListsKeyboard = new(
+        new[]
+        {
+            new KeyboardButton[] { Commands.Left, Commands.Right },
+            new KeyboardButton[] { Commands.Back }
         })
     {
         ResizeKeyboard = true

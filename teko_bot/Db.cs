@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
+// ReSharper disable All
+
 namespace teko_bot;
 
 // Содержит id и имя компании, чтобы было, чему выставлять счета
@@ -19,13 +21,28 @@ public class Company
         await db.SaveChangesAsync();
     }
 
-    //public static void 
+    public static async Task<List<Company>> GetCompanies(int page)
+    {
+        if (page < 1)
+            page = 1;
+        var db = BotConfiguration.Db;
+        var result = await db.Companies.Skip((page - 1) * BotConfiguration.PageSize).Take(BotConfiguration.PageSize)
+            .ToListAsync();
+        return result;
+    }
 
     public static async Task<int> getId(int id)
     {
         var db = BotConfiguration.Db;
         var company = await db.Companies.FindAsync(id);
         return company is null ? 0 : id;
+    }
+
+    public override string ToString()
+    {
+        string result = "";
+        result += "Id компании: " + CompanyId.ToString() + ", Название: " + Name.ToString();
+        return result;
     }
 }
 

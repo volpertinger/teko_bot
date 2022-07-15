@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -67,6 +68,7 @@ public static class UpdateHandlers
             Commands.AddCompany => AddCompany(botClient, message),
             Commands.LogInCompany => LogInCompany(botClient, message),
             Commands.GetCompanies => CheckCompanies(botClient, message),
+            Commands.Back => Back(botClient, message),
             _ => DefaultCase(botClient, message)
         };
         var sentMessage = await action;
@@ -97,7 +99,7 @@ public static class UpdateHandlers
     }
 
     // обработка показа существующих компаний
-    private static async Task<Message> CheckCompanies(ITelegramBotClient botClient, Message message)
+    private static async Task<Message> CheckCompanies(ITelegramBotClient botClient, Message message, int page = 1)
     {
         var state = await User.GetState(message.Chat.Username);
         if (state != States.Default && state != States.CheckCompanies)
@@ -106,9 +108,27 @@ public static class UpdateHandlers
         }
 
         User.SetState(message.Chat.Username, States.CheckCompanies);
+        var companies = await Company.GetCompanies(page);
+        //var messageText = companies[0].ToString();
+        var messageText = GetTextFromList(companies);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyAddInstruction,
-            replyMarkup: new ReplyKeyboardRemove());
+            text: messageText,
+            replyMarkup: await GetKeyboard(message));
+    }
+
+    // обработка возврата назад
+    private static async Task<Message> Back(ITelegramBotClient botClient, Message message, int page = 1)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (state != States.CheckCompanies)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        User.SetState(message.Chat.Username, States.Default);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.Back,
+            replyMarkup: await GetKeyboard(message));
     }
 
     // обработка входа по id компании
@@ -281,5 +301,19 @@ public static class UpdateHandlers
     {
         var state = await User.GetState(message.Chat.Username);
         return BotConfiguration.StatesKeyboards[state];
+    }
+
+    // Получить из некоторого List адекватное сообщение со списком
+
+    private static string GetTextFromList<T>(List<T> list, string sep = "\n")
+    {
+        var result = "";
+        for (int i = 0; i < list.Count - 1; ++i)
+        {
+            result += list[i] + sep;
+        }
+
+        result += list[list.Count - 1];
+        return result;
     }
 }
