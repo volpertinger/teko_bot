@@ -76,20 +76,46 @@ public class User
         await db.SaveChangesAsync();
     }
 
-    public static States GetState(string username)
+    public static States GetState(string? username)
     {
+        if (username is null)
+            return States.Default;
         UserCheck(username);
         var db = BotConfiguration.Db;
         var user = db.Users.Find(username);
         return user.State;
     }
 
-    public static int GetCurrentCompanyId(string username)
+    public static async void SetState(string? username, States state)
     {
+        if (username is null)
+            return;
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = await db.Users.FindAsync(username);
+        user.State = state;
+        await db.SaveChangesAsync();
+    }
+
+    public static int GetCurrentCompanyId(string? username)
+    {
+        if (username is null)
+            return 0;
         UserCheck(username);
         var db = BotConfiguration.Db;
         var user = db.Users.Find(username);
         return user.CurrentCompanyId;
+    }
+
+    public static async void SetCurrentCompanyId(string? username, int newId)
+    {
+        if (username is null)
+            return;
+        UserCheck(username);
+        var db = BotConfiguration.Db;
+        var user = await db.Users.FindAsync(username);
+        user.CurrentCompanyId = newId;
+        await db.SaveChangesAsync();
     }
 }
 
@@ -104,7 +130,7 @@ public sealed class ApplicationContext : DbContext
     {
         // TODO: убрать очистку
         // очистка для тестирования
-        Database.EnsureDeleted();
+        // Database.EnsureDeleted();
         // гарантируем, что БД создана и если нет, то создаем
         Database.EnsureCreated();
     }

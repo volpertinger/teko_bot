@@ -15,8 +15,6 @@ public static class BotConfiguration
     public const string DbSource = "teko_bot.db";
     public const string DbLogPath = "DbLog.txt";
     public static readonly ApplicationContext Db = new ApplicationContext();
-    public static States State = States.Default;
-    public static int CurrentCompanyId = 0;
 
     // каждому состоянию в соответствие ставится клавиатура
     public static readonly Dictionary<States, ReplyKeyboardMarkup> StatesKeyboards =
