@@ -66,6 +66,7 @@ public static class UpdateHandlers
             Commands.Clear => Clear(botClient, message),
             Commands.AddCompany => AddCompany(botClient, message),
             Commands.LogInCompany => LogInCompany(botClient, message),
+            Commands.GetCompanies => CheckCompanies(botClient, message),
             _ => DefaultCase(botClient, message)
         };
         var sentMessage = await action;
@@ -77,13 +78,13 @@ public static class UpdateHandlers
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.Usage,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // обработка добавления компании
     private static async Task<Message> AddCompany(ITelegramBotClient botClient, Message message)
     {
-        if (User.GetState(message.Chat.Username) != States.Default)
+        if (await User.GetState(message.Chat.Username) != States.Default)
         {
             return await WrongStateProcessing(botClient, message);
         }
@@ -95,10 +96,25 @@ public static class UpdateHandlers
             replyMarkup: new ReplyKeyboardRemove());
     }
 
+    // обработка показа существующих компаний
+    private static async Task<Message> CheckCompanies(ITelegramBotClient botClient, Message message)
+    {
+        var state = await User.GetState(message.Chat.Username);
+        if (state != States.Default && state != States.CheckCompanies)
+        {
+            return await WrongStateProcessing(botClient, message);
+        }
+
+        User.SetState(message.Chat.Username, States.CheckCompanies);
+        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
+            text: Answers.CompanyAddInstruction,
+            replyMarkup: new ReplyKeyboardRemove());
+    }
+
     // обработка входа по id компании
     private static async Task<Message> LogInCompany(ITelegramBotClient botClient, Message message)
     {
-        if (User.GetState(message.Chat.Username) != States.Default)
+        if (await User.GetState(message.Chat.Username) != States.Default)
         {
             return await WrongStateProcessing(botClient, message);
         }
@@ -115,7 +131,7 @@ public static class UpdateHandlers
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: "Я тебя не понимаю(",
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // обработка комманд, когда выполнен вход в компанию
@@ -124,7 +140,7 @@ public static class UpdateHandlers
         //Console.WriteLine(message.Chat.Username);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: "Ты в компании",
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // Отправка сообщения при правильной команде, но не в том состоянии
@@ -132,7 +148,7 @@ public static class UpdateHandlers
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.WrongState,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // Обраотка при добавлении компании
@@ -143,11 +159,11 @@ public static class UpdateHandlers
         if (message.Text is null)
             return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
                 text: Answers.CompanyAddUnSuccess,
-                replyMarkup: GetKeyboard(message));
+                replyMarkup: await GetKeyboard(message));
         Company.AddToDb(message.Text);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddSuccess,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // Обработка неудач при входе в компанию
@@ -157,7 +173,7 @@ public static class UpdateHandlers
         User.SetState(message.Chat.Username, States.Default);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInUnSuccess,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // Обработка процесса входа в компанию
@@ -168,20 +184,20 @@ public static class UpdateHandlers
 
         //BotConfiguration.CurrentCompanyId = await Company.getId(int.Parse(message.Text));
         User.SetCurrentCompanyId(message.Chat.Username, await Company.getId(int.Parse(message.Text)));
-        if (User.GetCurrentCompanyId(message.Chat.Username) == 0)
+        if (await User.GetCurrentCompanyId(message.Chat.Username) == 0)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
 
         //BotConfiguration.State = States.InCompany;
         User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInSuccess,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
     // Обработка сообщений, не являющимися командами
     private static async Task<Message> DefaultCase(ITelegramBotClient botClient, Message message)
     {
-        switch (User.GetState(message.Chat.Username))
+        switch (await User.GetState(message.Chat.Username))
         {
             case States.Default:
                 return await WrongCommandProcessing(botClient, message);
@@ -204,7 +220,7 @@ public static class UpdateHandlers
         User.SetCurrentCompanyId(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.ClearText,
-            replyMarkup: GetKeyboard(message));
+            replyMarkup: await GetKeyboard(message));
     }
 
 
@@ -261,8 +277,9 @@ public static class UpdateHandlers
 
 
     // получение текущей клавиатуры в зависимости от состояния
-    private static ReplyKeyboardMarkup GetKeyboard(Message message)
+    private static async Task<ReplyKeyboardMarkup> GetKeyboard(Message message)
     {
-        return BotConfiguration.StatesKeyboards[User.GetState(message.Chat.Username)];
+        var state = await User.GetState(message.Chat.Username);
+        return BotConfiguration.StatesKeyboards[state];
     }
 }

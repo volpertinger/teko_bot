@@ -14,7 +14,11 @@ public static class BotConfiguration
     public const string BotName = "teko_test_bot";
     public const string DbSource = "teko_bot.db";
     public const string DbLogPath = "DbLog.txt";
+
     public static readonly ApplicationContext Db = new ApplicationContext();
+
+    // размер страницы при выводе данных с БД
+    public const int PageSize = 10;
 
     // каждому состоянию в соответствие ставится клавиатура
     public static readonly Dictionary<States, ReplyKeyboardMarkup> StatesKeyboards =
@@ -35,6 +39,7 @@ public static class Commands
     public const string CreateBill = "Создать счёт";
     public const string CheckLastOperations = "Посмотреть последние операции";
     public const string GetSum = "Получить всю сумму за последние дни";
+    public const string GetCompanies = "Посмотреть зарегистрированные компании";
 }
 
 // Текстовые ответы, которыми бот делится
@@ -64,7 +69,8 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup StartKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.LogInCompany, Commands.AddCompany }
+            new KeyboardButton[] { Commands.LogInCompany, Commands.AddCompany },
+            new KeyboardButton[] { Commands.GetCompanies }
         })
     {
         ResizeKeyboard = true
@@ -89,4 +95,5 @@ public enum States
     InCompany,
     AddingCompany,
     LogInCompany,
+    CheckCompanies,
 }

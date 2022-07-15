@@ -19,6 +19,8 @@ public class Company
         await db.SaveChangesAsync();
     }
 
+    //public static void 
+
     public static async Task<int> getId(int id)
     {
         var db = BotConfiguration.Db;
@@ -76,13 +78,13 @@ public class User
         await db.SaveChangesAsync();
     }
 
-    public static States GetState(string? username)
+    public static async Task<States> GetState(string? username)
     {
         if (username is null)
             return States.Default;
         UserCheck(username);
         var db = BotConfiguration.Db;
-        var user = db.Users.Find(username);
+        var user = await db.Users.FindAsync(username);
         return user.State;
     }
 
@@ -97,13 +99,13 @@ public class User
         await db.SaveChangesAsync();
     }
 
-    public static int GetCurrentCompanyId(string? username)
+    public static async Task<int> GetCurrentCompanyId(string? username)
     {
         if (username is null)
             return 0;
         UserCheck(username);
         var db = BotConfiguration.Db;
-        var user = db.Users.Find(username);
+        var user = await db.Users.FindAsync(username);
         return user.CurrentCompanyId;
     }
 
