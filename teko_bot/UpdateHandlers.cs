@@ -112,7 +112,7 @@ public static class UpdateHandlers
 
         User.SetState(message.Chat.Username, States.CheckCompanies);
         var companies = await Company.GetCompanies(page);
-        var messageText = GetPageFromList(companies, await Company.GetAmount(), page);
+        var messageText = Paginator.GetPageFromList(companies, await Company.GetAmount(), page);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: messageText,
             replyMarkup: await GetKeyboard(message));
@@ -353,36 +353,5 @@ public static class UpdateHandlers
     {
         var state = await User.GetState(message.Chat.Username);
         return BotConfiguration.StatesKeyboards[state];
-    }
-
-    // Получить из некоторого List адекватное сообщение со списком
-    private static string GetTextFromList<T>(List<T> list, string sep = "\n")
-    {
-        if (list.Count == 0)
-            return Answers.EmptyList;
-        var result = "";
-        for (int i = 0; i < list.Count - 1; ++i)
-        {
-            result += list[i] + sep;
-        }
-
-        result += list[list.Count - 1];
-        return result;
-    }
-
-    // Добавить в конец строку с текущнй страницей и сколько страниц всего
-    private static string GetPageInfo(int totalAmount, int page)
-    {
-        return "страница " + page.ToString() + " из " +
-               Math.Ceiling((double)totalAmount / BotConfiguration.PageSize).ToString();
-    }
-
-    // генерация полноценной страницы для просмотра данных с БД 
-    private static string GetPageFromList<T>(List<T> list, int totalAmount, int page, string sep = "\n")
-    {
-        var result = GetTextFromList(list, sep);
-        result += "\n";
-        result += GetPageInfo(totalAmount, page);
-        return result;
     }
 }
