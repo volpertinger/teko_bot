@@ -53,7 +53,6 @@ public class AnswersJson
     public string CompanyLogInUnSuccess { get; set; }
     public string WrongState { get; set; }
     public string ClearText { get; set; }
-    public string WrongCommand { get; set; }
     public string Back { get; set; }
     public string OutOfPagesRange { get; set; }
     public string EmptyList { get; set; }
@@ -69,14 +68,13 @@ public class AnswersJson
 
 public class BotConfiguration
 {
-    public string BotToken { get; set; }
-    public string BotName { get; set; }
-    public string DbSource { get; set; }
-
-    public string DbLogPath { get; set; }
+    public readonly string BotToken;
+    public readonly string BotName;
+    public readonly string DbSource;
+    public readonly string DbLogPath;
 
     // размер страницы при выводе данных с БД
-    public int PageSize { get; set; }
+    public readonly int PageSize;
 
     public static readonly ApplicationContext Db = new ApplicationContext();
 
@@ -110,20 +108,19 @@ public class BotConfiguration
 // Команды, на которые реагирует бот
 public class Commands
 {
-    public string Usage { get; set; }
-    public string Clear { get; set; }
-    public string AddCompany { get; set; }
-    public string LogInCompany { get; set; }
-
-    public string CreateBill { get; set; }
-    public string CheckBills { get; set; }
-    public string GetSum { get; set; }
-    public string GetCompanies { get; set; }
-    public string Left { get; set; }
-    public string Right { get; set; }
-    public string Back { get; set; }
-    public string Confirm { get; set; }
-    public string Cancel { get; set; }
+    public readonly string Usage;
+    public readonly string Clear;
+    public readonly string AddCompany;
+    public readonly string LogInCompany;
+    public readonly string CreateBill;
+    public readonly string CheckBills;
+    public readonly string GetSum;
+    public readonly string GetCompanies;
+    public readonly string Left;
+    public readonly string Right;
+    public readonly string Back;
+    public readonly string Confirm;
+    public readonly string Cancel;
 
     public Commands()
     {
@@ -149,27 +146,26 @@ public class Commands
 // Текстовые ответы, которыми бот делится
 public class Answers
 {
-    public string Usage;
-    public string CompanyAddSuccess;
-    public string CompanyAddUnSuccess;
-    public string CompanyAddInstruction;
-    public string CompanyLogInInstruction;
-    public string CompanyLogInSuccess;
-    public string CompanyLogInUnSuccess;
-    public string WrongState;
-    public string ClearText;
-    public string WrongCommand;
-    public string Back;
-    public string OutOfPagesRange;
-    public string EmptyList;
-    public string BillCreateHelp;
-    public string BillCreateSumHelp;
-    public string BillCreateEmailHelp;
-    public string BillCreateDiscHelp;
-    public string BillCreateUnSuccess;
-    public string BillCreateSuccess;
-    public string BillCancel;
-    public string GetSum;
+    public readonly string Usage;
+    public readonly string CompanyAddSuccess;
+    public readonly string CompanyAddUnSuccess;
+    public readonly string CompanyAddInstruction;
+    public readonly string CompanyLogInInstruction;
+    public readonly string CompanyLogInSuccess;
+    public readonly string CompanyLogInUnSuccess;
+    public readonly string WrongState;
+    public readonly string ClearText;
+    public readonly string Back;
+    public readonly string OutOfPagesRange;
+    public readonly string EmptyList;
+    public readonly string BillCreateHelp;
+    public readonly string BillCreateSumHelp;
+    public readonly string BillCreateEmailHelp;
+    public readonly string BillCreateDiscHelp;
+    public readonly string BillCreateUnSuccess;
+    public readonly string BillCreateSuccess;
+    public readonly string BillCancel;
+    public readonly string GetSum;
 
     public Answers()
     {
@@ -185,7 +181,6 @@ public class Answers
         CompanyLogInUnSuccess = config.Answers.CompanyLogInUnSuccess;
         WrongState = config.Answers.WrongState;
         ClearText = config.Answers.ClearText;
-        WrongCommand = config.Answers.WrongCommand;
         Back = config.Answers.Back;
         OutOfPagesRange = config.Answers.OutOfPagesRange;
         EmptyList = config.Answers.EmptyList;
