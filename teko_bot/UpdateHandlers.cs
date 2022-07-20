@@ -27,12 +27,6 @@ public static class UpdateHandlers
     {
         var handler = update.Type switch
         {
-            // UpdateType.Unknown:
-            // UpdateType.ChannelPost:
-            // UpdateType.EditedChannelPost:
-            // UpdateType.ShippingQuery:
-            // UpdateType.PreCheckoutQuery:
-            // UpdateType.Poll:
             UpdateType.Message => BotOnMessageReceived(botClient, update.Message!),
             UpdateType.EditedMessage => BotOnMessageReceived(botClient, update.EditedMessage!),
             UpdateType.CallbackQuery => BotOnCallbackQueryReceived(botClient, update.CallbackQuery!),
@@ -120,8 +114,7 @@ public static class UpdateHandlers
         {
             return await WrongStateProcessing(botClient, message);
         }
-
-        //BotConfiguration.State = States.AddingCompany;
+        
         await User.SetState(message.Chat.Username, States.AddingCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddInstruction,
@@ -315,8 +308,7 @@ public static class UpdateHandlers
         {
             return await WrongStateProcessing(botClient, message);
         }
-
-        //BotConfiguration.State = States.LogInCompany;
+        
         await User.SetState(message.Chat.Username, States.LogInCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInInstruction,
@@ -350,7 +342,6 @@ public static class UpdateHandlers
     // Обраотка при добавлении компании
     private static async Task<Message> AddCompanyProcessing(ITelegramBotClient botClient, Message message)
     {
-        //BotConfiguration.State = States.Default;
         await User.SetState(message.Chat.Username, States.Default);
         if (message.Text is null)
             return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
@@ -365,7 +356,6 @@ public static class UpdateHandlers
     // Обработка неудач при входе в компанию
     private static async Task<Message> LogInCompanyUnSuccessProcessing(ITelegramBotClient botClient, Message message)
     {
-        //BotConfiguration.State = States.Default;
         await User.SetState(message.Chat.Username, States.Default);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInUnSuccess,
@@ -386,13 +376,11 @@ public static class UpdateHandlers
     {
         if (message.Text is null)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
-
-        //BotConfiguration.CurrentCompanyId = await Company.getId(int.Parse(message.Text));
+        
         await User.SetCurrentCompanyId(message.Chat.Username, await Company.getId(int.Parse(message.Text)));
         if (await User.GetCurrentCompanyId(message.Chat.Username) == 0)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
-
-        //BotConfiguration.State = States.InCompany;
+        
         await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInSuccess,
@@ -451,7 +439,6 @@ public static class UpdateHandlers
     // Обработка возврата в начало
     private static async Task<Message> Clear(ITelegramBotClient botClient, Message message)
     {
-        //BotConfiguration.State = States.Default;
         await User.SetState(message.Chat.Username, States.Default);
         await User.SetCurrentCompanyId(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
@@ -499,7 +486,6 @@ public static class UpdateHandlers
     private static Task BotOnChosenInlineResultReceived(ITelegramBotClient botClient,
         ChosenInlineResult chosenInlineResult)
     {
-        // ReSharper disable once StringLiteralTypo
         Console.WriteLine($"Результат встроенного запроса: {chosenInlineResult.ResultId}\n id бота: {botClient.BotId}");
         return Task.CompletedTask;
     }
