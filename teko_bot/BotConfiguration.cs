@@ -3,18 +3,55 @@
 namespace teko_bot;
 
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Text.Json;
 
-public static class BotConfiguration
+// чтобы адекватно считывать настройки с json
+public class RootConfigurationJson
 {
-    public const string BotToken = "5446428708:AAEOFR_1BHWh0G6W8yCNzDgJkU7tSfBgS3g";
-    public const string BotName = "teko_test_bot";
-    public const string DbSource = "teko_bot.db";
-    public const string DbLogPath = "DbLog.txt";
+    public BotConfigurationJson BotConfiguration { get; set; }
+    public CommandsJson Commands { get; set; }
+}
 
-    public static readonly ApplicationContext Db = new ApplicationContext();
+public class BotConfigurationJson
+{
+    public string BotToken { get; set; }
+    public string BotName { get; set; }
+    public string DbSource { get; set; }
+    public string DbLogPath { get; set; }
+
+    public int PageSize { get; set; }
+}
+
+public class CommandsJson
+{
+    public string Usage { get; set; }
+    public string Clear { get; set; }
+    public string AddCompany { get; set; }
+    public string LogInCompany { get; set; }
+
+    public string CreateBill { get; set; }
+    public string CheckBills { get; set; }
+    public string GetSum { get; set; }
+    public string GetCompanies { get; set; }
+    public string Left { get; set; }
+    public string Right { get; set; }
+    public string Back { get; set; }
+    public string Confirm { get; set; }
+    public string Cancel { get; set; }
+}
+
+public class BotConfiguration
+{
+    public string BotToken { get; set; }
+    public string BotName { get; set; }
+    public string DbSource { get; set; }
+
+    public string DbLogPath { get; set; }
 
     // размер страницы при выводе данных с БД
-    public const int PageSize = 10;
+    public int PageSize { get; set; }
+
+    public static readonly ApplicationContext Db = new ApplicationContext();
 
     // каждому состоянию в соответствие ставится клавиатура
     public static readonly Dictionary<States, ReplyKeyboardMarkup> StatesKeyboards =
@@ -29,24 +66,57 @@ public static class BotConfiguration
             { States.BillEmail, Keyboards.BillCreateKeyboard },
             { States.BillDescription, Keyboards.BillConfirmKeyboard },
         };
+
+    public BotConfiguration()
+    {
+        var configFile = Program.ConfigFile;
+        var jsonText = File.ReadAllText(configFile);
+        var config = JsonSerializer.Deserialize<RootConfigurationJson>(jsonText)!;
+        BotToken = config.BotConfiguration.BotToken;
+        BotName = config.BotConfiguration.BotName;
+        DbSource = config.BotConfiguration.DbSource;
+        DbLogPath = config.BotConfiguration.DbLogPath;
+        PageSize = config.BotConfiguration.PageSize;
+    }
 }
 
 // Команды, на которые реагирует бот
-public static class Commands
+public class Commands
 {
-    public const string Usage = "/help";
-    public const string Clear = "/clear";
-    public const string AddCompany = "Добавить компанию";
-    public const string LogInCompany = "Войти по id компании";
-    public const string CreateBill = "Создать счёт";
-    public const string CheckBills = "Посмотреть последние операции";
-    public const string GetSum = "Получить всю сумму платежей";
-    public const string GetCompanies = "Посмотреть зарегистрированные компании";
-    public const string Left = "Влево";
-    public const string Right = "Вправо";
-    public const string Back = "Назад";
-    public const string Confirm = "Подтвердить";
-    public const string Cancel = "Отменить";
+    public string Usage { get; set; }
+    public string Clear { get; set; }
+    public string AddCompany { get; set; }
+    public string LogInCompany { get; set; }
+
+    public string CreateBill { get; set; }
+    public string CheckBills { get; set; }
+    public string GetSum { get; set; }
+    public string GetCompanies { get; set; }
+    public string Left { get; set; }
+    public string Right { get; set; }
+    public string Back { get; set; }
+    public string Confirm { get; set; }
+    public string Cancel { get; set; }
+
+    public Commands()
+    {
+        var configFile = Program.ConfigFile;
+        var jsonText = File.ReadAllText(configFile);
+        var config = JsonSerializer.Deserialize<RootConfigurationJson>(jsonText)!;
+        Usage = config.Commands.Usage;
+        Clear = config.Commands.Clear;
+        AddCompany = config.Commands.AddCompany;
+        LogInCompany = config.Commands.LogInCompany;
+        CreateBill = config.Commands.CreateBill;
+        CheckBills = config.Commands.CheckBills;
+        GetSum = config.Commands.GetSum;
+        GetCompanies = config.Commands.GetCompanies;
+        Left = config.Commands.Left;
+        Right = config.Commands.Right;
+        Back = config.Commands.Back;
+        Confirm = config.Commands.Confirm;
+        Cancel = config.Commands.Cancel;
+    }
 }
 
 // Текстовые ответы, которыми бот делится
@@ -87,8 +157,8 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup StartKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.LogInCompany, Commands.AddCompany },
-            new KeyboardButton[] { Commands.GetCompanies }
+            new KeyboardButton[] { Program.Commands.LogInCompany, Program.Commands.AddCompany },
+            new KeyboardButton[] { Program.Commands.GetCompanies }
         })
     {
         ResizeKeyboard = true
@@ -97,9 +167,9 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup InCompanyKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.CreateBill },
-            new KeyboardButton[] { Commands.CheckBills },
-            new KeyboardButton[] { Commands.GetSum },
+            new KeyboardButton[] { Program.Commands.CreateBill },
+            new KeyboardButton[] { Program.Commands.CheckBills },
+            new KeyboardButton[] { Program.Commands.GetSum },
         })
     {
         ResizeKeyboard = true
@@ -108,8 +178,8 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup CheckDbListsKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.Left, Commands.Right },
-            new KeyboardButton[] { Commands.Back }
+            new KeyboardButton[] { Program.Commands.Left, Program.Commands.Right },
+            new KeyboardButton[] { Program.Commands.Back }
         })
     {
         ResizeKeyboard = true
@@ -118,7 +188,7 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup BillCreateKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.Cancel }
+            new KeyboardButton[] { Program.Commands.Cancel }
         })
     {
         ResizeKeyboard = true
@@ -127,8 +197,8 @@ public static class Keyboards
     public static readonly ReplyKeyboardMarkup BillConfirmKeyboard = new(
         new[]
         {
-            new KeyboardButton[] { Commands.Confirm },
-            new KeyboardButton[] { Commands.Cancel }
+            new KeyboardButton[] { Program.Commands.Confirm },
+            new KeyboardButton[] { Program.Commands.Cancel }
         })
     {
         ResizeKeyboard = true

@@ -38,7 +38,8 @@ public class Company
         }
 
         var db = BotConfiguration.Db;
-        var result = await db.Companies.Skip((page - 1) * BotConfiguration.PageSize).Take(BotConfiguration.PageSize)
+        var result = await db.Companies.Skip((page - 1) * Program.BotConfiguration.PageSize)
+            .Take(Program.BotConfiguration.PageSize)
             .ToListAsync();
         return result;
     }
@@ -178,7 +179,8 @@ public class Bill
         }
 
         var db = BotConfiguration.Db;
-        var result = await db.Bills.Skip((page - 1) * BotConfiguration.PageSize).Take(BotConfiguration.PageSize)
+        var result = await db.Bills.Skip((page - 1) * Program.BotConfiguration.PageSize)
+            .Take(Program.BotConfiguration.PageSize)
             .ToListAsync();
         return result;
     }
@@ -362,7 +364,9 @@ public class User
 
 public sealed class ApplicationContext : DbContext
 {
-    readonly StreamWriter logStream = new StreamWriter(BotConfiguration.DbLogPath, true);
+    readonly StreamWriter logStream = new StreamWriter(Program.BotConfiguration.DbLogPath, true);
+
+    //readonly StreamWriter logStream = new StreamWriter("/f.txt", true);
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<Bill> Bills => Set<Bill>();
     public DbSet<User> Users => Set<User>();
@@ -376,7 +380,8 @@ public sealed class ApplicationContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite($"Data Source={BotConfiguration.DbSource}");
+        optionsBuilder.UseSqlite($"Data Source={Program.BotConfiguration.DbSource}");
+        //optionsBuilder.UseSqlite($"Data Source={"teko_bot.db"}");
         optionsBuilder.LogTo(logStream.WriteLine);
     }
 

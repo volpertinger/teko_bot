@@ -24,7 +24,7 @@ public static class Paginator
     private static string GetPageInfo(int totalAmount, int page)
     {
         return "страница " + page.ToString() + " из " +
-               Math.Ceiling((double)totalAmount / BotConfiguration.PageSize);
+               Math.Ceiling((double)totalAmount / Program.BotConfiguration.PageSize);
     }
 
     // генерация полноценной страницы для просмотра данных с БД 

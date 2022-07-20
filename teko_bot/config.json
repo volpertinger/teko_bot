@@ -1,0 +1,24 @@
+{
+  "BotConfiguration": {
+    "BotToken": "5446428708:AAEOFR_1BHWh0G6W8yCNzDgJkU7tSfBgS3g",
+    "BotName": "teko_test_bot",
+    "DbSource": "teko_bot.db",
+    "DbLogPath": "DbLog.txt",
+    "PageSize": 10
+  },
+  "Commands": {
+    "Usage": "/help",
+    "Clear": "/clear",
+    "AddCompany": "Добавить компанию",
+    "LogInCompany": "Войти по id компании",
+    "CreateBill": "Создать счёт",
+    "CheckBills": "Посмотреть последние операции",
+    "GetSum": "Получить всю сумму платежей",
+    "GetCompanies": "Посмотреть зарегистрированные компании",
+    "Left": "Влево",
+    "Right": "Вправо",
+    "Back": "Назад",
+    "Confirm": "Подтвердить",
+    "Cancel": "Отменить"
+  }
+}

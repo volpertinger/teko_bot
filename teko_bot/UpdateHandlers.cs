@@ -54,6 +54,36 @@ public static class UpdateHandlers
         if (messageText is null)
             return;
 
+        Task<Message> action;
+        // Тут нельзя использовать switch т.к. Program.Commands не const, a readonly static ((((
+        if (messageText == Program.Commands.Usage)
+            action = Usage(botClient, message);
+        else if (messageText == Program.Commands.Clear)
+            action = Clear(botClient, message);
+        else if (messageText == Program.Commands.AddCompany)
+            action = AddCompany(botClient, message);
+        else if (messageText == Program.Commands.LogInCompany)
+            action = LogInCompany(botClient, message);
+        else if (messageText == Program.Commands.GetCompanies)
+            action = CheckCompanies(botClient, message);
+        else if (messageText == Program.Commands.CheckBills)
+            action = CheckBills(botClient, message);
+        else if (messageText == Program.Commands.Back)
+            action = Back(botClient, message);
+        else if (messageText == Program.Commands.Left)
+            action = Left(botClient, message);
+        else if (messageText == Program.Commands.Right)
+            action = Right(botClient, message);
+        else if (messageText == Program.Commands.CreateBill)
+            action = BillCreate(botClient, message);
+        else if (messageText == Program.Commands.Cancel)
+            action = Cancel(botClient, message);
+        else if (messageText == Program.Commands.Confirm)
+            action = Confirm(botClient, message);
+        else if (messageText == Program.Commands.GetSum)
+            action = GetSum(botClient, message);
+        else action = DefaultCase(botClient, message);
+/*
         var action = messageText switch
         {
             Commands.Usage => Usage(botClient, message),
@@ -71,6 +101,7 @@ public static class UpdateHandlers
             Commands.GetSum => GetSum(botClient, message),
             _ => DefaultCase(botClient, message)
         };
+*/
         var sentMessage = await action;
         Console.WriteLine($"Сообщение было отправлено с id: {sentMessage.MessageId}");
     }
@@ -114,7 +145,7 @@ public static class UpdateHandlers
         {
             return await WrongStateProcessing(botClient, message);
         }
-        
+
         await User.SetState(message.Chat.Username, States.AddingCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddInstruction,
@@ -282,7 +313,7 @@ public static class UpdateHandlers
                 return await WrongCommandProcessing(botClient, message);
         }
 
-        if (amount <= page * BotConfiguration.PageSize)
+        if (amount <= page * Program.BotConfiguration.PageSize)
         {
             return await OutOfPageProcessing(botClient, message);
         }
@@ -308,7 +339,7 @@ public static class UpdateHandlers
         {
             return await WrongStateProcessing(botClient, message);
         }
-        
+
         await User.SetState(message.Chat.Username, States.LogInCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInInstruction,
@@ -376,11 +407,11 @@ public static class UpdateHandlers
     {
         if (message.Text is null)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
-        
+
         await User.SetCurrentCompanyId(message.Chat.Username, await Company.getId(int.Parse(message.Text)));
         if (await User.GetCurrentCompanyId(message.Chat.Username) == 0)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
-        
+
         await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInSuccess,
