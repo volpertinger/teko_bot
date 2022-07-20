@@ -2,7 +2,7 @@ namespace teko_bot;
 
 using System.Text;
 
-public class Paginator
+public static class Paginator
 {
     // Получить из некоторого List адекватное сообщение со списком
     private static string GetTextFromList<T>(List<T> list, string sep = "\n")
@@ -16,7 +16,7 @@ public class Paginator
             result.Append(sep);
         }
         
-        result.Append(list[list.Count - 1]);
+        result.Append(list[^1]);
         return result.ToString();
     }
 
@@ -24,7 +24,7 @@ public class Paginator
     private static string GetPageInfo(int totalAmount, int page)
     {
         return "страница " + page.ToString() + " из " +
-               Math.Ceiling((double)totalAmount / BotConfiguration.PageSize).ToString();
+               Math.Ceiling((double)totalAmount / BotConfiguration.PageSize);
     }
 
     // генерация полноценной страницы для просмотра данных с БД 

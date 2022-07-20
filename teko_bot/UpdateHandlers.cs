@@ -122,7 +122,7 @@ public static class UpdateHandlers
         }
 
         //BotConfiguration.State = States.AddingCompany;
-        User.SetState(message.Chat.Username, States.AddingCompany);
+        await User.SetState(message.Chat.Username, States.AddingCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddInstruction,
             replyMarkup: new ReplyKeyboardRemove());
@@ -153,7 +153,7 @@ public static class UpdateHandlers
             return await WrongStateProcessing(botClient, message);
         }
 
-        User.SetState(message.Chat.Username, States.InCompany);
+        await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCancel,
             replyMarkup: await GetKeyboard(message));
@@ -169,8 +169,8 @@ public static class UpdateHandlers
         }
 
         var username = message.Chat.Username;
-        User.SetState(username, States.InCompany);
-        User.CreateBill(username);
+        await User.SetState(username, States.InCompany);
+        await User.CreateBill(username);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateSuccess,
             replyMarkup: await GetKeyboard(message));
@@ -185,7 +185,7 @@ public static class UpdateHandlers
             return await WrongStateProcessing(botClient, message);
         }
 
-        User.SetState(message.Chat.Username, States.CheckCompanies);
+        await User.SetState(message.Chat.Username, States.CheckCompanies);
         var companies = await Company.GetCompanies(page);
         var messageText = Paginator.GetPageFromList(companies, await Company.GetAmount(), page);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
@@ -202,7 +202,7 @@ public static class UpdateHandlers
             return await WrongStateProcessing(botClient, message);
         }
 
-        User.SetState(message.Chat.Username, States.CheckBills);
+        await User.SetState(message.Chat.Username, States.CheckBills);
         var bills = await Bill.GetBills(page);
         var messageText = Paginator.GetPageFromList(bills, await Bill.GetAmount(), page);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
@@ -222,17 +222,14 @@ public static class UpdateHandlers
         switch (state)
         {
             case States.CheckCompanies:
-                User.SetState(message.Chat.Username, States.Default);
+                await User.SetState(message.Chat.Username, States.Default);
                 break;
             case States.CheckBills:
-                User.SetState(message.Chat.Username, States.InCompany);
-                break;
-            default:
-                User.SetState(message.Chat.Username, States.Default);
+                await User.SetState(message.Chat.Username, States.InCompany);
                 break;
         }
 
-        User.SetPage(message.Chat.Username, 0);
+        await User.SetPage(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.Back,
             replyMarkup: await GetKeyboard(message));
@@ -254,7 +251,7 @@ public static class UpdateHandlers
         }
 
         page -= 1;
-        User.SetPage(message.Chat.Username, page);
+        await User.SetPage(message.Chat.Username, page);
 
         switch (state)
         {
@@ -278,27 +275,27 @@ public static class UpdateHandlers
 
         var page = await User.GetPage(message.Chat.Username);
 
-        int Amount;
+        int amount;
 
         switch (state)
         {
             case States.CheckCompanies:
-                Amount = await Company.GetAmount();
+                amount = await Company.GetAmount();
                 break;
             case States.CheckBills:
-                Amount = await Bill.GetAmount();
+                amount = await Bill.GetAmount();
                 break;
             default:
                 return await WrongCommandProcessing(botClient, message);
         }
 
-        if (Amount <= page * BotConfiguration.PageSize)
+        if (amount <= page * BotConfiguration.PageSize)
         {
             return await OutOfPageProcessing(botClient, message);
         }
 
         page += 1;
-        User.SetPage(message.Chat.Username, page);
+        await User.SetPage(message.Chat.Username, page);
 
         switch (state)
         {
@@ -320,7 +317,7 @@ public static class UpdateHandlers
         }
 
         //BotConfiguration.State = States.LogInCompany;
-        User.SetState(message.Chat.Username, States.LogInCompany);
+        await User.SetState(message.Chat.Username, States.LogInCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInInstruction,
             replyMarkup: new ReplyKeyboardRemove());
@@ -331,15 +328,6 @@ public static class UpdateHandlers
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: "Я тебя не понимаю(",
-            replyMarkup: await GetKeyboard(message));
-    }
-
-    // обработка комманд, когда выполнен вход в компанию
-    private static async Task<Message> InCompanyProcessing(ITelegramBotClient botClient, Message message)
-    {
-        //Console.WriteLine(message.Chat.Username);
-        return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: "Ты в компании",
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -363,12 +351,12 @@ public static class UpdateHandlers
     private static async Task<Message> AddCompanyProcessing(ITelegramBotClient botClient, Message message)
     {
         //BotConfiguration.State = States.Default;
-        User.SetState(message.Chat.Username, States.Default);
+        await User.SetState(message.Chat.Username, States.Default);
         if (message.Text is null)
             return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
                 text: Answers.CompanyAddUnSuccess,
                 replyMarkup: await GetKeyboard(message));
-        Company.AddToDb(message.Text);
+        await Company.AddToDb(message.Text);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyAddSuccess,
             replyMarkup: await GetKeyboard(message));
@@ -378,7 +366,7 @@ public static class UpdateHandlers
     private static async Task<Message> LogInCompanyUnSuccessProcessing(ITelegramBotClient botClient, Message message)
     {
         //BotConfiguration.State = States.Default;
-        User.SetState(message.Chat.Username, States.Default);
+        await User.SetState(message.Chat.Username, States.Default);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInUnSuccess,
             replyMarkup: await GetKeyboard(message));
@@ -387,7 +375,7 @@ public static class UpdateHandlers
     // Обработка неудач при создании счета
     private static async Task<Message> BillUnSuccessProcessing(ITelegramBotClient botClient, Message message)
     {
-        User.SetState(message.Chat.Username, States.InCompany);
+        await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateUnSuccess,
             replyMarkup: await GetKeyboard(message));
@@ -400,12 +388,12 @@ public static class UpdateHandlers
             return await LogInCompanyUnSuccessProcessing(botClient, message);
 
         //BotConfiguration.CurrentCompanyId = await Company.getId(int.Parse(message.Text));
-        User.SetCurrentCompanyId(message.Chat.Username, await Company.getId(int.Parse(message.Text)));
+        await User.SetCurrentCompanyId(message.Chat.Username, await Company.getId(int.Parse(message.Text)));
         if (await User.GetCurrentCompanyId(message.Chat.Username) == 0)
             return await LogInCompanyUnSuccessProcessing(botClient, message);
 
         //BotConfiguration.State = States.InCompany;
-        User.SetState(message.Chat.Username, States.InCompany);
+        await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.CompanyLogInSuccess,
             replyMarkup: await GetKeyboard(message));
@@ -419,8 +407,8 @@ public static class UpdateHandlers
 
         var draftId = await BillDraft.addToDb(int.Parse(message.Text));
         var username = message.Chat.Username;
-        User.SetDraft(username, draftId);
-        User.SetState(username, States.BillSum);
+        await User.SetDraft(username, draftId);
+        await User.SetState(username, States.BillSum);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateSumHelp,
@@ -435,8 +423,8 @@ public static class UpdateHandlers
 
         var username = message.Chat.Username;
         var draftId = await User.GetDraft(username);
-        BillDraft.addEmail(draftId, message.Text);
-        User.SetState(username, States.BillEmail);
+        await BillDraft.addEmail(draftId, message.Text);
+        await User.SetState(username, States.BillEmail);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateEmailHelp,
@@ -451,8 +439,8 @@ public static class UpdateHandlers
 
         var username = message.Chat.Username;
         var draftId = await User.GetDraft(username);
-        BillDraft.addDesc(draftId, message.Text);
-        User.SetState(username, States.BillDescription);
+        await BillDraft.addDesc(draftId, message.Text);
+        await User.SetState(username, States.BillDescription);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateDiscHelp,
@@ -464,8 +452,8 @@ public static class UpdateHandlers
     private static async Task<Message> Clear(ITelegramBotClient botClient, Message message)
     {
         //BotConfiguration.State = States.Default;
-        User.SetState(message.Chat.Username, States.Default);
-        User.SetCurrentCompanyId(message.Chat.Username, 0);
+        await User.SetState(message.Chat.Username, States.Default);
+        await User.SetCurrentCompanyId(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.ClearText,
             replyMarkup: await GetKeyboard(message));
@@ -539,7 +527,7 @@ public static class UpdateHandlers
             return await WrongStateProcessing(botClient, message);
         }
 
-        User.SetState(message.Chat.Username, States.BillCreate);
+        await User.SetState(message.Chat.Username, States.BillCreate);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Answers.BillCreateHelp,
             replyMarkup: await GetKeyboard(message));

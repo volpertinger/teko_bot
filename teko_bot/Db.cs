@@ -10,15 +10,18 @@ namespace teko_bot;
 public class Company
 {
     public int CompanyId { get; set; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     public List<Bill> Bills { get; set; } = new();
 
-    public static async void AddToDb(string name)
+    public static async Task<bool> AddToDb(string name)
     {
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         db.Add(new Company { Name = name });
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<int> GetAmount()
@@ -54,7 +57,9 @@ public class Company
         if (id < 1)
             return 0;
         var db = BotConfiguration.Db;
-        var company = db.Companies.Find(id);
+        var company = await db.Companies.FindAsync(id);
+        if (company is null)
+            return 0;
         var bills = company.Bills;
         int result = 0;
         foreach (var bill in bills)
@@ -68,7 +73,7 @@ public class Company
     public override string ToString()
     {
         string result = "";
-        result += "Id компании: " + CompanyId.ToString() + ", Название: " + Name.ToString();
+        result += "Id компании: " + CompanyId.ToString() + ", Название: " + Name?.ToString();
         return result;
     }
 }
@@ -97,27 +102,32 @@ public class BillDraft
     }
 
     // добавляет в черновик email
-    public static async void addEmail(int id, string email)
+    public static async Task<bool> addEmail(int id, string email)
     {
         var db = BotConfiguration.Db;
-
+        if (db is null)
+            return false;
         var draft = await db.Drafts.FindAsync(id);
         if (draft is null)
-            return;
+            return false;
         draft.Email = email;
         await db.SaveChangesAsync();
+        return true;
     }
 
     // добавляет в черновик описание
-    public static async void addDesc(int id, string desc)
+    public static async Task<bool> addDesc(int id, string desc)
     {
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
 
         var draft = await db.Drafts.FindAsync(id);
         if (draft is null)
-            return;
+            return false;
         draft.Description = desc;
         await db.SaveChangesAsync();
+        return true;
     }
 }
 
@@ -128,22 +138,22 @@ public class Bill
     public string? Description { get; set; }
 
     public int Sum { get; set; }
-    public string Email { get; set; }
-    public string Date { get; set; }
+    public string? Email { get; set; }
+    public string? Date { get; set; }
 
     // Связь 1 - много: Company - Bill
     public int CompanyId { get; set; }
     public Company? Company { get; set; }
 
-    public static async void addToDb(string? description, string email, int companyId, int sum)
+    public static async Task<bool> addToDb(string? description, string email, int companyId, int sum)
     {
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         // чтобы не было ошибки при добавлении счета к несуществующей компании
         var company = await db.Companies.FindAsync(companyId);
         if (company is null)
-        {
-            return;
-        }
+            return false;
 
         db.Add(new Bill
         {
@@ -151,6 +161,7 @@ public class Bill
             CompanyId = companyId, Sum = sum
         });
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<int> GetAmount()
@@ -176,7 +187,7 @@ public class Bill
     {
         string result = "";
         result += "*) Id компании: " + CompanyId.ToString() + ", Сумма: " + Sum.ToString() + ", Email: " + Email +
-                  "\nОписание: " + Description + "\nДата: " + Date.ToString();
+                  "\nОписание: " + Description + "\nДата: " + Date?.ToString();
         return result;
     }
 }
@@ -185,7 +196,7 @@ public class Bill
 public class User
 {
     // Username будет ключом
-    [Key] public string Username { get; set; }
+    [Key] public string? Username { get; set; }
 
     // сотсояние бота для конкретного пользователя
     public States State { get; set; }
@@ -200,114 +211,152 @@ public class User
     public int CurrentDraft { get; set; }
 
     // проверяет, что пользователь с Username существует, иначе - добавляет его в базу
-    public static async void UserCheck(string username)
+    public static async Task<bool> UserCheck(string username)
     {
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
-        if (user is not null) return;
+        if (user is not null)
+            return true;
         db.Users.Add(new User { Username = username, State = States.Default, CurrentCompanyId = 0 });
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<States> GetState(string? username)
     {
         if (username is null)
             return States.Default;
-        UserCheck(username);
+        await UserCheck(username);
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
-        return user.State;
+        if (user != null) return user.State;
+        return States.Default;
     }
 
-    public static async void SetState(string? username, States state)
+    public static async Task<bool> SetState(string? username, States state)
     {
         if (username is null)
-            return;
-        UserCheck(username);
+            return false;
+        await UserCheck(username);
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return false;
         user.State = state;
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<int> GetPage(string? username)
     {
         if (username is null)
             return 0;
-        UserCheck(username);
+        await UserCheck(username);
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return 1;
         return user.CurrentPage;
     }
 
-    public static async void SetPage(string? username, int page)
+    public static async Task<bool> SetPage(string? username, int page)
     {
         if (username is null)
-            return;
-        UserCheck(username);
+            return false;
+        await UserCheck(username);
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return false;
         user.CurrentPage = page;
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<int> GetDraft(string? username)
     {
         if (username is null)
             return 0;
-        UserCheck(username);
+        await UserCheck(username);
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return -1;
         return user.CurrentDraft;
     }
 
-    public static async void SetDraft(string? username, int draftId)
+    public static async Task<bool> SetDraft(string? username, int draftId)
     {
         if (username is null)
-            return;
-        UserCheck(username);
+            return false;
+        await UserCheck(username);
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return false;
         user.CurrentDraft = draftId;
         await db.SaveChangesAsync();
+        return true;
     }
 
     public static async Task<int> GetCurrentCompanyId(string? username)
     {
         if (username is null)
             return 0;
-        UserCheck(username);
+        await UserCheck(username);
         var db = BotConfiguration.Db;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return -1;
         return user.CurrentCompanyId;
     }
 
-    public static async void SetCurrentCompanyId(string? username, int newId)
+    public static async Task<bool> SetCurrentCompanyId(string? username, int newId)
     {
         if (username is null)
-            return;
-        UserCheck(username);
+            return false;
+        await UserCheck(username);
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return false;
         user.CurrentCompanyId = newId;
         await db.SaveChangesAsync();
+        return true;
     }
 
     // удаляет черновик счета и создает запись в таблице счетов
-    public static async void CreateBill(string? username)
+    public static async Task<bool> CreateBill(string? username)
     {
         if (username is null)
-            return;
-        UserCheck(username);
+            return false;
+        await UserCheck(username);
         var db = BotConfiguration.Db;
+        if (db is null)
+            return false;
         var user = await db.Users.FindAsync(username);
+        if (user is null)
+            return false;
         var draft = await db.Drafts.FindAsync(user.CurrentDraft);
         if (draft is null)
-            return;
-        Bill.addToDb(draft.Description, draft.Email, user.CurrentCompanyId, draft.Sum);
+            return false;
+        if (draft.Email is null)
+            return false;
+        await Bill.addToDb(draft.Description, draft.Email, user.CurrentCompanyId, draft.Sum);
         db.Drafts.Remove(draft);
         user.CurrentDraft = 0;
         await db.SaveChangesAsync();
+        return true;
     }
 }
 
@@ -321,9 +370,6 @@ public sealed class ApplicationContext : DbContext
 
     public ApplicationContext()
     {
-        // TODO: убрать очистку
-        // очистка для тестирования
-        // Database.EnsureDeleted();
         // гарантируем, что БД создана и если нет, то создаем
         Database.EnsureCreated();
     }
