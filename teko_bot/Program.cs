@@ -9,7 +9,8 @@ public static class Program
 {
     public static string ConfigFile = "../../../config.json";
     public static readonly BotConfiguration BotConfiguration = new ();
-    public static readonly Commands Commands = new Commands();
+    public static readonly Commands Commands = new();
+    public static readonly Answers Answers = new();
 
     public static async Task Main()
     {

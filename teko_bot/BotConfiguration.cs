@@ -10,6 +10,8 @@ public class RootConfigurationJson
 {
     public BotConfigurationJson BotConfiguration { get; set; }
     public CommandsJson Commands { get; set; }
+
+    public AnswersJson Answers { get; set; }
 }
 
 public class BotConfigurationJson
@@ -38,6 +40,31 @@ public class CommandsJson
     public string Back { get; set; }
     public string Confirm { get; set; }
     public string Cancel { get; set; }
+}
+
+public class AnswersJson
+{
+    public string Usage { get; set; }
+    public string CompanyAddSuccess { get; set; }
+    public string CompanyAddUnSuccess { get; set; }
+    public string CompanyAddInstruction { get; set; }
+    public string CompanyLogInInstruction { get; set; }
+    public string CompanyLogInSuccess { get; set; }
+    public string CompanyLogInUnSuccess { get; set; }
+    public string WrongState { get; set; }
+    public string ClearText { get; set; }
+    public string WrongCommand { get; set; }
+    public string Back { get; set; }
+    public string OutOfPagesRange { get; set; }
+    public string EmptyList { get; set; }
+    public string BillCreateHelp { get; set; }
+    public string BillCreateSumHelp { get; set; }
+    public string BillCreateEmailHelp { get; set; }
+    public string BillCreateDiscHelp { get; set; }
+    public string BillCreateUnSuccess { get; set; }
+    public string BillCreateSuccess { get; set; }
+    public string BillCancel { get; set; }
+    public string GetSum { get; set; }
 }
 
 public class BotConfiguration
@@ -120,35 +147,57 @@ public class Commands
 }
 
 // Текстовые ответы, которыми бот делится
-public static class Answers
+public class Answers
 {
-    public const string Usage = "Использование:\n" +
-                                "Введите id компании. Если она не существует, то ее можно добавить." +
-                                "Если она существует, то можно выполнить следующие действия:\n" +
-                                "1) создать счёт (сумма, описание счёта, email для отправки счёта)\n" +
-                                "2) посмотреть последние операции\n" +
-                                "3) получить информацию по общей сумме платежей\n";
+    public string Usage;
+    public string CompanyAddSuccess;
+    public string CompanyAddUnSuccess;
+    public string CompanyAddInstruction;
+    public string CompanyLogInInstruction;
+    public string CompanyLogInSuccess;
+    public string CompanyLogInUnSuccess;
+    public string WrongState;
+    public string ClearText;
+    public string WrongCommand;
+    public string Back;
+    public string OutOfPagesRange;
+    public string EmptyList;
+    public string BillCreateHelp;
+    public string BillCreateSumHelp;
+    public string BillCreateEmailHelp;
+    public string BillCreateDiscHelp;
+    public string BillCreateUnSuccess;
+    public string BillCreateSuccess;
+    public string BillCancel;
+    public string GetSum;
 
-    public const string CompanyAddSuccess = "Компания успешно добавлена\n";
-    public const string CompanyAddUnSuccess = "Что - то пошло не так, компания не добавлена\n";
-    public const string CompanyAddInstruction = "Введите название компании\n";
-    public const string CompanyLogInInstruction = "Введите id компании\n";
-    public const string CompanyLogInSuccess = "Вы успешно вошли в компанию\n";
-    public const string CompanyLogInUnSuccess = "Что - то пошло не так, вход не выполнен\n";
-    public const string WrongState = "Не с правильного места вызвал ты комманду, хитрец\n";
-    public const string ClearText = "Начнём сначала\n";
-    public const string WrongCommand = "Я тебя не понимаю(\n";
-    public const string Back = "Вернемся назад\n";
-    public const string OutOfPagesRange = "В той стороне нет больше данных\n";
-    public const string EmptyList = "Нет здесь ничего, нужно сначала хоть что - то добавить\n";
-    public const string BillCreateHelp = "Сейчас будет создан счет компании\nВведите сумму счета\n";
-    public const string BillCreateSumHelp = "Введена сумма\nВведите email\n";
-    public const string BillCreateEmailHelp = "Введен email\nВведите описание\n";
-    public const string BillCreateDiscHelp = "Введено описание\nПодтвердите создание счета\n";
-    public const string BillCreateUnSuccess = "Произошла ошибка при создании счета, попробуйте снова\n";
-    public const string BillCreateSuccess = "Счёт создан\n";
-    public const string BillCancel = "Создание счета отменено\n";
-    public const string GetSum = "Сумма платежей по данной комании: \n";
+    public Answers()
+    {
+        var configFile = Program.ConfigFile;
+        var jsonText = File.ReadAllText(configFile);
+        var config = JsonSerializer.Deserialize<RootConfigurationJson>(jsonText)!;
+        Usage = config.Answers.Usage;
+        CompanyAddSuccess = config.Answers.CompanyAddSuccess;
+        CompanyAddUnSuccess = config.Answers.CompanyAddUnSuccess;
+        CompanyAddInstruction = config.Answers.CompanyAddInstruction;
+        CompanyLogInInstruction = config.Answers.CompanyLogInInstruction;
+        CompanyLogInSuccess = config.Answers.CompanyLogInSuccess;
+        CompanyLogInUnSuccess = config.Answers.CompanyLogInUnSuccess;
+        WrongState = config.Answers.WrongState;
+        ClearText = config.Answers.ClearText;
+        WrongCommand = config.Answers.WrongCommand;
+        Back = config.Answers.Back;
+        OutOfPagesRange = config.Answers.OutOfPagesRange;
+        EmptyList = config.Answers.EmptyList;
+        BillCreateHelp = config.Answers.BillCreateHelp;
+        BillCreateSumHelp = config.Answers.BillCreateSumHelp;
+        BillCreateEmailHelp = config.Answers.BillCreateEmailHelp;
+        BillCreateDiscHelp = config.Answers.BillCreateDiscHelp;
+        BillCreateUnSuccess = config.Answers.BillCreateUnSuccess;
+        BillCreateSuccess = config.Answers.BillCreateSuccess;
+        BillCancel = config.Answers.BillCancel;
+        GetSum = config.Answers.GetSum;
+    }
 }
 
 // Различные клавиатуры для разных остояний

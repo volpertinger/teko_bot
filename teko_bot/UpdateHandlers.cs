@@ -134,7 +134,7 @@ public static class UpdateHandlers
     private static async Task<Message> Usage(ITelegramBotClient botClient, Message message)
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.Usage,
+            text: Program.Answers.Usage,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -148,7 +148,7 @@ public static class UpdateHandlers
 
         await User.SetState(message.Chat.Username, States.AddingCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyAddInstruction,
+            text: Program.Answers.CompanyAddInstruction,
             replyMarkup: new ReplyKeyboardRemove());
     }
 
@@ -160,7 +160,7 @@ public static class UpdateHandlers
             return await WrongStateProcessing(botClient, message);
         }
 
-        var messageText = Answers.GetSum;
+        var messageText = Program.Answers.GetSum;
         messageText += await Company.getSum(await User.GetCurrentCompanyId(message.Chat.Username));
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: messageText,
@@ -179,7 +179,7 @@ public static class UpdateHandlers
 
         await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCancel,
+            text: Program.Answers.BillCancel,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -196,7 +196,7 @@ public static class UpdateHandlers
         await User.SetState(username, States.InCompany);
         await User.CreateBill(username);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateSuccess,
+            text: Program.Answers.BillCreateSuccess,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -255,7 +255,7 @@ public static class UpdateHandlers
 
         await User.SetPage(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.Back,
+            text: Program.Answers.Back,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -342,7 +342,7 @@ public static class UpdateHandlers
 
         await User.SetState(message.Chat.Username, States.LogInCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyLogInInstruction,
+            text: Program.Answers.CompanyLogInInstruction,
             replyMarkup: new ReplyKeyboardRemove());
     }
 
@@ -358,7 +358,7 @@ public static class UpdateHandlers
     private static async Task<Message> WrongStateProcessing(ITelegramBotClient botClient, Message message)
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.WrongState,
+            text: Program.Answers.WrongState,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -366,7 +366,7 @@ public static class UpdateHandlers
     private static async Task<Message> OutOfPageProcessing(ITelegramBotClient botClient, Message message)
     {
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.OutOfPagesRange,
+            text: Program.Answers.OutOfPagesRange,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -376,11 +376,11 @@ public static class UpdateHandlers
         await User.SetState(message.Chat.Username, States.Default);
         if (message.Text is null)
             return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-                text: Answers.CompanyAddUnSuccess,
+                text: Program.Answers.CompanyAddUnSuccess,
                 replyMarkup: await GetKeyboard(message));
         await Company.AddToDb(message.Text);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyAddSuccess,
+            text: Program.Answers.CompanyAddSuccess,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -389,7 +389,7 @@ public static class UpdateHandlers
     {
         await User.SetState(message.Chat.Username, States.Default);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyLogInUnSuccess,
+            text: Program.Answers.CompanyLogInUnSuccess,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -398,7 +398,7 @@ public static class UpdateHandlers
     {
         await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateUnSuccess,
+            text: Program.Answers.BillCreateUnSuccess,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -414,7 +414,7 @@ public static class UpdateHandlers
 
         await User.SetState(message.Chat.Username, States.InCompany);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.CompanyLogInSuccess,
+            text: Program.Answers.CompanyLogInSuccess,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -430,7 +430,7 @@ public static class UpdateHandlers
         await User.SetState(username, States.BillSum);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateSumHelp,
+            text: Program.Answers.BillCreateSumHelp,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -446,7 +446,7 @@ public static class UpdateHandlers
         await User.SetState(username, States.BillEmail);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateEmailHelp,
+            text: Program.Answers.BillCreateEmailHelp,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -462,7 +462,7 @@ public static class UpdateHandlers
         await User.SetState(username, States.BillDescription);
 
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateDiscHelp,
+            text: Program.Answers.BillCreateDiscHelp,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -473,7 +473,7 @@ public static class UpdateHandlers
         await User.SetState(message.Chat.Username, States.Default);
         await User.SetCurrentCompanyId(message.Chat.Username, 0);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.ClearText,
+            text: Program.Answers.ClearText,
             replyMarkup: await GetKeyboard(message));
     }
 
@@ -546,7 +546,7 @@ public static class UpdateHandlers
 
         await User.SetState(message.Chat.Username, States.BillCreate);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-            text: Answers.BillCreateHelp,
+            text: Program.Answers.BillCreateHelp,
             replyMarkup: await GetKeyboard(message));
     }
 }

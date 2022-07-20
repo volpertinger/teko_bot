@@ -8,7 +8,7 @@ public static class Paginator
     private static string GetTextFromList<T>(List<T> list, string sep = "\n")
     {
         if (list.Count == 0)
-            return Answers.EmptyList;
+            return Program.Answers.EmptyList;
         var result = new StringBuilder();
         for (int i = 0; i < list.Count - 1; ++i)
         {
