@@ -203,6 +203,7 @@ public static class UpdateHandlers
     // обработка показа существующих компаний
     private static async Task<Message> CheckCompanies(ITelegramBotClient botClient, Message message, int page = 1)
     {
+        Console.WriteLine(page);
         var state = await User.GetState(message.Chat.Username);
         if (state != States.Default && state != States.CheckCompanies)
         {
@@ -210,6 +211,7 @@ public static class UpdateHandlers
         }
 
         await User.SetState(message.Chat.Username, States.CheckCompanies);
+        await User.SetPage(message.Chat.Username, page);
         var companies = await Company.GetCompanies(page);
         var messageText = Paginator.GetPageFromList(companies, await Company.GetAmount(), page);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
@@ -247,9 +249,11 @@ public static class UpdateHandlers
         {
             case States.CheckCompanies:
                 await User.SetState(message.Chat.Username, States.Default);
+                await User.SetPage(message.Chat.Username, 1);
                 break;
             case States.CheckBills:
                 await User.SetState(message.Chat.Username, States.InCompany);
+                await User.SetPage(message.Chat.Username, 1);
                 break;
         }
 
@@ -472,6 +476,7 @@ public static class UpdateHandlers
     {
         await User.SetState(message.Chat.Username, States.Default);
         await User.SetCurrentCompanyId(message.Chat.Username, 0);
+        await User.SetPage(message.Chat.Username, 1);
         return await botClient.SendTextMessageAsync(chatId: message.Chat.Id,
             text: Program.Answers.ClearText,
             replyMarkup: await GetKeyboard(message));
