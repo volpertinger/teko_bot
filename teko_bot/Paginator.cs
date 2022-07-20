@@ -1,5 +1,7 @@
 namespace teko_bot;
 
+using System.Text;
+
 public class Paginator
 {
     // Получить из некоторого List адекватное сообщение со списком
@@ -7,14 +9,15 @@ public class Paginator
     {
         if (list.Count == 0)
             return Answers.EmptyList;
-        var result = "";
+        var result = new StringBuilder();
         for (int i = 0; i < list.Count - 1; ++i)
         {
-            result += list[i] + sep;
+            result.Append(list[i]);
+            result.Append(sep);
         }
-
-        result += list[list.Count - 1];
-        return result;
+        
+        result.Append(list[list.Count - 1]);
+        return result.ToString();
     }
 
     // Добавить в конец строку с текущнй страницей и сколько страниц всего
